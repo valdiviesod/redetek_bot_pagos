@@ -38,7 +38,10 @@ const soporteFlow = addKeyword(['Soporte', 'soporte'])
 const main = async () => {
     const adapterFlow = createFlow([welcomeFlow, soporteFlow, oficinasFlow, fisicoFlow, virtualFlow])
 
-    const adapterProvider = createProvider(Provider)
+    const adapterProvider = createProvider(Provider, { 
+        experimentalStore: true,
+        timeRelease: 300000, // 5 minutes in milliseconds
+    })
     const adapterDB = new Database()
 
     const { handleCtx, httpServer } = await createBot({
