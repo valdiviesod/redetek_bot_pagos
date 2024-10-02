@@ -11,7 +11,6 @@ const welcomeFlow = addKeyword(EVENTS.WELCOME)
     .addAnswer(`Si deseas realizar un pago de manera física, escribe *fisico* para obtener información sobre cómo realizar tus pagos en nuestros puntos físicos.`)
     .addAnswer(`Si necesitas la dirección de nuestras oficinas, escribe *oficinas*.`)
     .addAnswer(`Si deseas realizar un pago de manera virtual, escribe *virtual* para comenzar con tu proceso de pago en línea.`)
-    .addAnswer(`Si necesitas la dirección de nuestras oficinas, escribe *oficinas*.`)
     
 
 const fisicoFlow = addKeyword(['Físico', 'físico', 'Fisico', 'fisico'])
@@ -28,7 +27,7 @@ const oficinasFlow = addKeyword(['Oficinas', 'oficinas'])
     .addAnswer(`San fernando Cra 58# 73-12 `)
 
 const virtualFlow = addKeyword(['Virtual', 'virtual'])
-    .addAnswer(`Para realizar tu pago de manera *virtual*, vamos a generarte un link de cobro via *PSE*. Este link se habvilita desde el momento en que lo solicites hasta las 04:00 PM del mismo dia.`)
+    .addAnswer(`Para realizar tu pago de manera *virtual*, vamos a generarte un link de cobro via *PSE*. Este link se habilita desde el momento en que lo solicites hasta las 04:00 PM del mismo dia.`)
     .addAnswer(`Una vez realices el pago, debes enviar por este medio el comprobante del pago.`)
     .addAnswer(`🙏 En un momento uno de nuestros asesores te enviará el link de cobro para que realices el pago. No envíes mensajes hasta recibir una respuesta.`)
 
