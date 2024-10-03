@@ -2,20 +2,16 @@ import { createBot, createProvider, createFlow, addKeyword, EVENTS } from '@buil
 import { MemoryDB as Database } from '@builderbot/bot'
 import { BaileysProvider as Provider } from '@builderbot/provider-baileys'
 
-
 const PORT = process.env.PORT ?? 3008
-
 
 const welcomeFlow = addKeyword(EVENTS.WELCOME)
     .addAnswer(`🙌  Hola, te comunicas con el *Chatbot* automático de Redetek, estoy para colaborarte con el proceso de pago de tus servicios.`)
     .addAnswer(`Si deseas realizar un pago de manera física, escribe *fisico* para obtener información sobre cómo realizar tus pagos en nuestros puntos físicos.`)
     .addAnswer(`Si necesitas la dirección de nuestras oficinas, escribe *oficinas*.`)
     .addAnswer(`Si deseas realizar un pago de manera virtual, escribe *virtual* para comenzar con tu proceso de pago en línea.`)
-    
 
 const fisicoFlow = addKeyword(['Físico', 'físico', 'Fisico', 'fisico'])
     .addAnswer('De manera presencial manejamos *pagos en efectivo* con horario en nuestras oficinas de 08:00 am a 05:00 pm de lunes a sábado. No aplica festivos ni domingos.')
-
 
 const oficinasFlow = addKeyword(['Oficinas', 'oficinas'])
     .addAnswer(`Estas son nuestras oficinas en *Bogotá*:`)
@@ -31,14 +27,13 @@ const virtualFlow = addKeyword(['Virtual', 'virtual'])
     .addAnswer(`Una vez realices el pago, debes enviar por este medio el comprobante del pago.`)
     .addAnswer(`🙏 En un momento uno de nuestros asesores te enviará el link de cobro para que realices el pago. No envíes mensajes hasta recibir una respuesta.`)
 
-
 const soporteFlow = addKeyword(['Soporte', 'soporte'])
     .addAnswer(`Para soporte técnico debes comunicarte a la siguiente línea telefónica para *Bogotá*: 6013080010 y para *Calarcá*: 6063080012. Allí tu solicitud será validada en un lapso no mayor a 24 horas hábiles laboradas.`)
 
 const main = async () => {
     const adapterFlow = createFlow([welcomeFlow, soporteFlow, oficinasFlow, fisicoFlow, virtualFlow])
 
-    const adapterProvider = createProvider(Provider, { 
+    const adapterProvider = createProvider(Provider, {
         experimentalStore: true,
         timeRelease: 300000, // 5 minutes in milliseconds
     })
@@ -55,6 +50,10 @@ const main = async () => {
         handleCtx(async (bot, req, res) => {
             const { number, message, urlMedia } = req.body
             await bot.sendMessage(number, message, { media: urlMedia ?? null })
+                .catch(err => {
+                    console.error(`Failed to send message to ${number}:`, err);
+                    res.status(500).send('Message sending failed');
+                });
             return res.end('sended')
         })
     )
@@ -64,6 +63,10 @@ const main = async () => {
         handleCtx(async (bot, req, res) => {
             const { number, name } = req.body
             await bot.dispatch('REGISTER_FLOW', { from: number, name })
+                .catch(err => {
+                    console.error(`Failed to trigger register flow for ${number}:`, err);
+                    res.status(500).send('Flow trigger failed');
+                });
             return res.end('trigger')
         })
     )
@@ -73,6 +76,10 @@ const main = async () => {
         handleCtx(async (bot, req, res) => {
             const { number, name } = req.body
             await bot.dispatch('SAMPLES', { from: number, name })
+                .catch(err => {
+                    console.error(`Failed to trigger samples flow for ${number}:`, err);
+                    res.status(500).send('Flow trigger failed');
+                });
             return res.end('trigger')
         })
     )
@@ -81,11 +88,15 @@ const main = async () => {
         '/v1/blacklist',
         handleCtx(async (bot, req, res) => {
             const { number, intent } = req.body
-            if (intent === 'remove') bot.blacklist.remove(number)
-            if (intent === 'add') bot.blacklist.add(number)
-
-            res.writeHead(200, { 'Content-Type': 'application/json' })
-            return res.end(JSON.stringify({ status: 'ok', number, intent }))
+            try {
+                if (intent === 'remove') bot.blacklist.remove(number)
+                if (intent === 'add') bot.blacklist.add(number)
+                res.writeHead(200, { 'Content-Type': 'application/json' })
+                return res.end(JSON.stringify({ status: 'ok', number, intent }))
+            } catch (err) {
+                console.error(`Failed to modify blacklist for ${number}:`, err);
+                res.status(500).send('Blacklist modification failed');
+            }
         })
     )
 
