@@ -12,6 +12,8 @@ const welcomeFlow = addKeyword(EVENTS.WELCOME)
     .addAnswer(`Si deseas realizar un pago de manera física, escribe *fisico* para obtener información sobre cómo realizar tus pagos en nuestros puntos físicos.`)
     .addAnswer(`Si necesitas la dirección de nuestras oficinas, escribe *oficinas*.`)
     .addAnswer(`Si deseas realizar un pago de manera virtual, escribe *virtual* para comenzar con tu proceso de pago en línea.`)
+    .addAnswer(`Si necesitas soporte técnico, escribe *soporte* para obtener la línea de soporte técnico.`)
+
 
 const fisicoFlow = addKeyword(['Físico', 'físico', 'Fisico', 'fisico'])
     .addAnswer('De manera presencial manejamos *pagos en efectivo* con horario en nuestras oficinas de 08:00 am a 05:00 pm de lunes a sábado. No aplica festivos ni domingos.')
