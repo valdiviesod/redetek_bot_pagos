@@ -7,7 +7,7 @@ const { RateLimiter } = require('limiter');
 
 const PORT = process.env.PORT ?? 3008
 
-const welcomeFlow = addKeyword(EVENTS.WELCOME)
+const welcomeFlow = addKeyword(['Hola', 'Buenas', 'Buenos', 'Buen', 'Saludos', 'Muy', 'Hello', 'Hi', 'Cordial', 'Saludo', 'Quiero', 'Puede', 'Pueden'])
     .addAnswer(`🙌  Hola, te comunicas con el *Chatbot* automático de Redetek, estoy para colaborarte con el proceso de pago de tus servicios.`)
     .addAnswer(`Si deseas realizar un pago de manera física, escribe *fisico* para obtener información sobre cómo realizar tus pagos en nuestros puntos físicos.`)
     .addAnswer(`Si necesitas la dirección de nuestras oficinas, escribe *oficinas*.`)
