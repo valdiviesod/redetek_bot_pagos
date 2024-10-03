@@ -18,7 +18,6 @@ const fisicoFlow = addKeyword(['Físico', 'físico', 'Fisico', 'fisico'])
 
 const oficinasFlow = addKeyword(['Oficinas', 'oficinas'])
     .addAnswer(`Estas son nuestras oficinas en *Bogotá*:`)
-    .addAnswer(`San fernando Cra 58# 73-12 `)
     .addAnswer(`La Estrada Cll 66 #69p 39 `)
     .addAnswer(`Boyacá Real Cll 69a # 74a 21 `)
     .addAnswer(`Fraguita  Cra 24 #7 - 49sur`)
