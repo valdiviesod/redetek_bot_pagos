@@ -1,7 +1,9 @@
 import { createBot, createProvider, createFlow, addKeyword, EVENTS } from '@builderbot/bot'
 import { MemoryDB as Database } from '@builderbot/bot'
 import { BaileysProvider as Provider } from '@builderbot/provider-baileys'
-import { RateLimiter } from 'limiter'
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const { RateLimiter } = require('limiter');
 
 const PORT = process.env.PORT ?? 3008
 
