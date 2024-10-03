@@ -13,7 +13,8 @@
   "dependencies": {
     "@builderbot/bot": "1.2.2",
     "@builderbot/provider-baileys": "1.2.2",
-    "@builderbot/database-json": "1.2.2"
+    "@builderbot/database-json": "1.2.2",
+    "limiter": "^2.1.0"
   },
   "devDependencies": {
     "eslint-plugin-builderbot": "latest",
