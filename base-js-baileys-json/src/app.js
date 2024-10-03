@@ -1,6 +1,7 @@
 import { createBot, createProvider, createFlow, addKeyword, EVENTS } from '@builderbot/bot'
 import { MemoryDB as Database } from '@builderbot/bot'
 import { BaileysProvider as Provider } from '@builderbot/provider-baileys'
+import { RateLimiter } from 'limiter'
 
 const PORT = process.env.PORT ?? 3008
 
@@ -45,54 +46,65 @@ const main = async () => {
         database: adapterDB,
     })
 
+    // Create a rate limiter that allows 10 requests per second
+    const limiter = new RateLimiter({ tokensPerInterval: 10, interval: "second" });
+
     adapterProvider.server.post(
         '/v1/messages',
         handleCtx(async (bot, req, res) => {
-            const { number, message, urlMedia } = req.body
-            await bot.sendMessage(number, message, { media: urlMedia ?? null })
-                .catch(err => {
-                    console.error(`Failed to send message to ${number}:`, err);
-                    res.status(500).send('Message sending failed');
-                });
-            return res.end('sended')
+            try {
+                // Wait for a token from the rate limiter
+                await limiter.removeTokens(1);
+
+                const { number, message, urlMedia } = req.body
+                await bot.sendMessage(number, message, { media: urlMedia ?? null })
+                res.status(200).send('Message sent successfully')
+            } catch (err) {
+                console.error(`Failed to send message to ${number}:`, err);
+                res.status(500).send('Message sending failed');
+            }
         })
     )
 
     adapterProvider.server.post(
         '/v1/register',
         handleCtx(async (bot, req, res) => {
-            const { number, name } = req.body
-            await bot.dispatch('REGISTER_FLOW', { from: number, name })
-                .catch(err => {
-                    console.error(`Failed to trigger register flow for ${number}:`, err);
-                    res.status(500).send('Flow trigger failed');
-                });
-            return res.end('trigger')
+            try {
+                await limiter.removeTokens(1);
+                const { number, name } = req.body
+                await bot.dispatch('REGISTER_FLOW', { from: number, name })
+                res.status(200).send('Register flow triggered successfully')
+            } catch (err) {
+                console.error(`Failed to trigger register flow for ${number}:`, err);
+                res.status(500).send('Flow trigger failed');
+            }
         })
     )
 
     adapterProvider.server.post(
         '/v1/samples',
         handleCtx(async (bot, req, res) => {
-            const { number, name } = req.body
-            await bot.dispatch('SAMPLES', { from: number, name })
-                .catch(err => {
-                    console.error(`Failed to trigger samples flow for ${number}:`, err);
-                    res.status(500).send('Flow trigger failed');
-                });
-            return res.end('trigger')
+            try {
+                await limiter.removeTokens(1);
+                const { number, name } = req.body
+                await bot.dispatch('SAMPLES', { from: number, name })
+                res.status(200).send('Samples flow triggered successfully')
+            } catch (err) {
+                console.error(`Failed to trigger samples flow for ${number}:`, err);
+                res.status(500).send('Flow trigger failed');
+            }
         })
     )
 
     adapterProvider.server.post(
         '/v1/blacklist',
         handleCtx(async (bot, req, res) => {
-            const { number, intent } = req.body
             try {
+                await limiter.removeTokens(1);
+                const { number, intent } = req.body
                 if (intent === 'remove') bot.blacklist.remove(number)
                 if (intent === 'add') bot.blacklist.add(number)
-                res.writeHead(200, { 'Content-Type': 'application/json' })
-                return res.end(JSON.stringify({ status: 'ok', number, intent }))
+                res.status(200).json({ status: 'ok', number, intent })
             } catch (err) {
                 console.error(`Failed to modify blacklist for ${number}:`, err);
                 res.status(500).send('Blacklist modification failed');
@@ -103,4 +115,7 @@ const main = async () => {
     httpServer(+PORT)
 }
 
-main()
+main().catch(err => {
+    console.error('Failed to start the bot:', err);
+    process.exit(1);
+});
