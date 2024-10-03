@@ -33,40 +33,47 @@ const virtualFlow = addKeyword(['Virtual', 'virtual'])
 const soporteFlow = addKeyword(['Soporte', 'soporte'])
     .addAnswer(`Para soporte técnico debes comunicarte a la siguiente línea telefónica para *Bogotá*: 6013080010 y para *Calarcá*: 6063080012. Allí tu solicitud será validada en un lapso no mayor a 24 horas hábiles laboradas.`)
 
-const main = async () => {
-    const adapterFlow = createFlow([welcomeFlow, soporteFlow, oficinasFlow, fisicoFlow, virtualFlow])
-
-    const adapterProvider = createProvider(Provider, {
-        experimentalStore: true,
-        timeRelease: 300000, // 5 minutes in milliseconds
-    })
-    const adapterDB = new Database()
-
-    const { handleCtx, httpServer } = await createBot({
-        flow: adapterFlow,
-        provider: adapterProvider,
-        database: adapterDB,
-    })
-
-    // Create a rate limiter that allows 10 requests per second
-    const limiter = new RateLimiter({ tokensPerInterval: 10, interval: "second" });
-
-    adapterProvider.server.post(
-        '/v1/messages',
-        handleCtx(async (bot, req, res) => {
-            try {
-                // Wait for a token from the rate limiter
-                await limiter.removeTokens(1);
-
-                const { number, message, urlMedia } = req.body
-                await bot.sendMessage(number, message, { media: urlMedia ?? null })
-                res.status(200).send('Message sent successfully')
-            } catch (err) {
-                console.error(`Failed to send message to ${number}:`, err);
-                res.status(500).send('Message sending failed');
+    const main = async () => {
+        const adapterFlow = createFlow([welcomeFlow, soporteFlow, oficinasFlow, fisicoFlow, virtualFlow])
+    
+        const adapterProvider = createProvider(Provider, {
+            experimentalStore: true,
+            timeRelease: 300000, // 5 minutes in milliseconds
+            markReadMessage: true,
+            retryStrategy: {
+                attempts: 3,
+                delay: 5000
             }
         })
-    )
+        const adapterDB = new Database()
+    
+        const { handleCtx, httpServer } = await createBot({
+            flow: adapterFlow,
+            provider: adapterProvider,
+            database: adapterDB,
+        })
+    
+        // Create a rate limiter that allows 5 requests per second
+        const limiter = new RateLimiter({ tokensPerInterval: 5, interval: "second" });
+    
+        adapterProvider.server.post(
+            '/v1/messages',
+            handleCtx(async (bot, req, res) => {
+                try {
+                    await limiter.removeTokens(1);
+                    const { number, message, urlMedia } = req.body
+                    await bot.sendMessage(number, message, { media: urlMedia ?? null })
+                        .catch(err => {
+                            console.error(`Error sending message to ${number}:`, err);
+                            throw err; // Re-throw to be caught by the outer catch
+                        });
+                    res.status(200).send('Message sent successfully')
+                } catch (err) {
+                    console.error(`Failed to process message for ${req.body.number}:`, err);
+                    res.status(500).send('Message processing failed');
+                }
+            })
+        )
 
     adapterProvider.server.post(
         '/v1/register',
@@ -113,6 +120,11 @@ const main = async () => {
             }
         })
     )
+    process.on('unhandledRejection', (reason, promise) => {
+        console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+        // Aplicación específica: Decidir si terminar el proceso
+        // process.exit(1);
+    });
 
     httpServer(+PORT)
 }
