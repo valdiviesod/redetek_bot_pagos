@@ -30,6 +30,7 @@ const oficinasFlow = addKeyword(['Oficinas', 'oficinas'])
 const virtualFlow = addKeyword(['Virtual', 'virtual'])
     .addAnswer(`Para realizar tu pago de manera *virtual*, vamos a generarte un link de cobro via *PSE*. Este link se habilita desde el momento en que lo solicites hasta las 04:00 PM del mismo dia.`)
     .addAnswer(`Una vez realices el pago, debes enviar por este medio el comprobante del pago.`)
+    .addAnswer(`Ten en cuenta que solo puedes realizar pagos equivalentes al valor *total*, no puedes realizar pagos parciales`)
     .addAnswer(`🙏 En un momento uno de nuestros asesores te enviará el link de cobro para que realices el pago. No envíes mensajes hasta recibir una respuesta.`)
 
 const soporteFlow = addKeyword(['Soporte', 'soporte'])
